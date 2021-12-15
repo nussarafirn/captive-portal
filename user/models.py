@@ -8,18 +8,34 @@ from app import auth_writer
 import json
 
 
-
 class Message(Enum):
     DISCONNECT_MSG = 1
+
+    # sends from capport to auth
     AUTHENTICATE_CLIENT = 2
+
+    # sends from auth to controller
     INFORM_CONTROLLER = 3
-    CONTROLLER_NOTIFICATION = 4
-    USER_AUTHENTICATED = 5
-    USER_NOT_AUTHENTICATED = 6
+
+    # sends messages to auth 
+    INFORM_AUTH = 4
+
+    # sends messages to captive portal 
+    INFORM_CAPPORT = 5
+
+    # authentication process
+    USER_AUTHENTICATED = 6
+    USER_NOT_AUTHENTICATED = 7
+
+    # sends from authenticators to each (DONE)
+    CAPPORT_NOTIFICATION = 8
+    CONTROLLER_NOTIFICATION = 9
+
+    # for controller flow rules
+    FLOW_SUCCESSFUL = 10
+    FLOW_UNSUCCESSFUL = 11
+
     LOCAL_TEST = 9999
-
-
-
 
 class User:
 
@@ -75,23 +91,25 @@ class User:
 
     #retrive info from UI to create a user object
     user = {
-        "type": Message.AUTHENTICATE_CLIENT.value,
+        "type": Message.INFORM_AUTH.value,
         "data": {
           'user_ip': request.environ['REMOTE_ADDR'],
           "email": request.form.get('email'),
           "password": request.form.get('password'),
-          "status": "not authenticated"
+          "status": Message.AUTHENTICATE_CLIENT.value
         }
     }
 
     print("***************user**********")
     print(user)
 
-    if (len(user) != 0 and user['type'] == 2):
+    if (len(user) != 0 and user['type'] == Message.INFORM_AUTH.value):
         auth_writer.write(json.dumps(user))
         auth_writer.write('\n')
         auth_writer.flush()
-        
+
+        print("----SEND to authenticator")
+
         return jsonify(user), 200
 
     return jsonify({ "error": "Invalid login credentials" }), 401

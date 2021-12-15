@@ -19,6 +19,8 @@ addr_auth = '127.0.0.1'
 port = 5050
 auth_socket = eventlet.connect((addr_auth, port))
 
+print(f"[AUTH CONNECTED]: A auth socket is connect on {addr_auth}")
+
 #   set up a reader & writer to auth
 auth_writer = auth_socket.makefile('w')
 auth_reader = auth_socket.makefile('r')
