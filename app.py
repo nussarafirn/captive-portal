@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, redirect
+from flask import Flask, render_template, session, redirect, url_for
 from functools import wraps
 
 import eventlet
@@ -6,7 +6,6 @@ import eventlet
 
 app = Flask(__name__)
 app.secret_key = b'\xcc^\x91\xea\x17-\xd0W\x03\xa7\xf8J0\xac8\xc5'
-
 
 
 
@@ -61,5 +60,10 @@ def dashboard():
 @app.route('/wait/')
 def wait():
   return render_template('wait.html')
+
+
+@app.route('/wait/dashboard')
+def test():
+  return redirect(url_for('dashboard'))
 
 

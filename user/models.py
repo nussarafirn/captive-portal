@@ -1,10 +1,12 @@
+from eventlet.convenience import listen
 from flask import Flask, jsonify, request, session, redirect
 from passlib.hash import pbkdf2_sha256
 import uuid
+import eventlet
 
 
 from enum import Enum
-from app import auth_writer
+from app import auth_writer, auth_reader
 import json
 
 
@@ -72,13 +74,48 @@ class User:
   def signout(self):
     session.clear()
     return redirect('/')
-  
-  def login(self):
 
-    print("***************entered login func**********")
+  def listen(self, reader):
 
+    print("[START LISTENING]----------")
+    
+
+    line = reader.readline()
+    
+    while line: 
+      msg = line.strip()
+      msg = json.loads(msg)
+
+      print("[START PRINTING MSG]----------")
+      print(msg)
+
+      if msg['type'] == Message.INFORM_CAPPORT.value:
+        if msg['data']['status'] == Message.USER_AUTHENTICATED.value:
+
+          session['logged_in'] = True
+          session['user'] = msg['data']
+          
+          print("[START PRINTING SESSION]----------")
+          print(session)
+
+          return redirect('/dashboard')
+        else:
+          print("[LISTEN GETS ERRORS]----------")
+
+          session.clear()
+          return jsonify({ "error": "Invalid login credentials" }), 401
+
+      else:
+        print("------- %s -------" % msg['data']['message'])
+
+      line = reader.readline()
 
     
+  def login(self):
+    
+    # eventlet.spawn_n(listen, auth_reader)
+    # print("[LISTEN THREAD IS SPAWNED] -------------")
+
     '''user = {
           "type": "",
           "data": {
